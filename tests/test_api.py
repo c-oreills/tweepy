@@ -3,6 +3,7 @@ import random
 import shutil
 from time import sleep
 import os
+import json
 
 from nose import SkipTest
 
@@ -30,7 +31,38 @@ class TweepyErrorTests(unittest.TestCase):
         self.assertEqual(e.response, e2.response)
 
 
+class TweepyAPITests2(TweepyTestCase):
+
+    @tape.use_cassette('testfailure.json')
+    def testapierror(self):
+        from tweepy.error import TweepError
+
+        try:
+            self.api.direct_messages()
+        except TweepError as e:
+            self.assertTrue("'message': 'Bad Authentication data.'" in e.reason)
+            self.assertTrue("'code': 215" in e.reason)
+            self.assertEqual(e.api_code, 215)
+        else:
+            self.fail("TweepError not raised")
+
+
 class TweepyAPITests(TweepyTestCase):
+
+    @tape.use_cassette('testfailure.json')
+    def testapierror(self):
+        from tweepy.error import TweepError
+
+        try:
+            self.api.direct_messages()
+        except TweepError as e:
+            self.assertEqual(
+                e.reason,
+                "[{'code': 215, 'message': 'Bad Authentication data.'}]"
+            )
+            self.assertEqual(e.api_code, 215)
+        else:
+            self.fail("TweepError not raised")
 
     # TODO: Actually have some sort of better assertion
     @tape.use_cassette('testgetoembed.json')
