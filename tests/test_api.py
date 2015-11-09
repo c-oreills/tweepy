@@ -1,9 +1,9 @@
+from ast import literal_eval
 import unittest
 import random
 import shutil
 from time import sleep
 import os
-import json
 
 from nose import SkipTest
 
@@ -37,14 +37,13 @@ class TweepyAPITests2(TweepyTestCase):
     def testapierror(self):
         from tweepy.error import TweepError
 
-        try:
+        with self.assertRaises(TweepError) as cm:
             self.api.direct_messages()
-        except TweepError as e:
-            self.assertTrue("'message': 'Bad Authentication data.'" in e.reason)
-            self.assertTrue("'code': 215" in e.reason)
-            self.assertEqual(e.api_code, 215)
-        else:
-            self.fail("TweepError not raised")
+
+        reason, = literal_eval(cm.exception.reason)
+        self.assertEqual(reason['message'], 'Bad Authentication data.')
+        self.assertEqual(reason['code'], 215)
+        self.assertEqual(cm.exception.api_code, 215)
 
 
 class TweepyAPITests(TweepyTestCase):
